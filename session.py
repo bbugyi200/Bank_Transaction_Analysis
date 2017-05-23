@@ -69,15 +69,15 @@ print('~~~ Total Expenses ~~~\n{:.2f}\n\n'.format(exps['amount'].sum()))
 print('~~~ Category Sums ~~~\n{}\n\n'.format(cats_group.sum()))
 print('~~~ Subcategory Sums ~~~\n{}\n'.format(subcats_group.sum()))
 
-# pricey = exps[exps['amount'] < -50]
+pricey = exps[exps['amount'] < -50]
+food = filtercat(exps, 'Food')
+other = filtercat(exps, 'Other')
+entertainment = filtercat(exps, 'Entertainment')
+monthly = filtercat(exps, 'Monthly')
+deposits = filtercat(trans, 'Deposit')
 
-# food = filtercat(exps, 'Food')
-# other = filtercat(exps, 'Other')
-# entertainment = filtercat(exps, 'Entertainment')
-# monthly = filtercat(exps, 'Monthly')
-# deposits = filtercat(trans, 'Deposit')
+categories = pd.unique(trans['category'])
 
-# categories = pd.unique(trans['category'])
 # Sums = pd.Series(np.zeros(len(categories)), index=categories)
 # for cat in Sums.index:
 #     Sums[cat] = sumamount(trans[trans['category'] == cat])
