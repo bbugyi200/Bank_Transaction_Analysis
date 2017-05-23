@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-keywords = pd.read_csv('keywords.csv', usecols=['category', 'subcategory', 'keyword'])
+keywords = pd.read_csv('keywords.csv', index_col=None)
 filename = '0423-0523.csv'
 
 
@@ -43,7 +43,7 @@ def analyzeTrans(trans):
             NewKey = pd.Series({'category': cat, 'subcategory': sub, 'keyword': key})
             keywords = keywords.append(NewKey, ignore_index=True)
             keywords.sort_values(['category', 'subcategory', 'keyword'], inplace=True)
-            keywords.to_csv('keywords.csv')
+            keywords.to_csv('keywords.csv', index=False)
 
             trans['category'][i] = cat
             trans['subcategory'][i] = sub
