@@ -1,3 +1,5 @@
 ===== TODO LIST =====
 [] Prompt user to explain 'None' values
 [] Display option for category and subcategory selection
+[] Provide list of cool commands (mostly groupby options)
+[] Prompt for 'Nickname' along with keyword (use for current trans['keyword'] column)
