@@ -14,12 +14,13 @@ def getTrans(CSV):
     del trans['-']
     trans['category'] = None
     trans['subcategory'] = None
+    trans['keyword'] = None
     return trans
 
 
 def getcats():
-    cat = input('category: ')
-    sub = input('subcategory: ')
+    cat = input('Category: ')
+    sub = input('Subcategory: ')
     key = input('Keyword: ')
     print('\n')
     return (key, cat, sub)
@@ -34,6 +35,7 @@ def analyzeTrans(trans):
                 assert match == '', "MULTIPLE KEYWORD MATCH: ('{0}', '{1}')".format(match, key)
                 trans['category'][i] = keywords.ix[j]['category']
                 trans['subcategory'][i] = keywords.ix[j]['subcategory']
+                trans['keyword'][i] = keywords.ix[j]['keyword']
                 match = key
         if match:
             continue
@@ -61,13 +63,15 @@ trans = getTrans(filename)
 analyzeTrans(trans)
 exps = trans[trans['amount'] < 0]
 
-cats_group = trans.groupby('category')
-subcats_group = trans.groupby(['category', 'subcategory'])
+groups = dict()
+groups['cats'] = trans.groupby('category')
+groups['subcats'] = trans.groupby(['category', 'subcategory'])
+groups['keys'] = trans.groupby(['category', 'subcategory', 'keyword'])
 
 print('\n\n')
 print('~~~ Total Expenses ~~~\n{:.2f}\n\n'.format(exps['amount'].sum()))
-print('~~~ Category Sums ~~~\n{}\n\n'.format(cats_group.sum()))
-print('~~~ Subcategory Sums ~~~\n{}\n'.format(subcats_group.sum()))
+print('~~~ Category Sums ~~~\n{}\n\n'.format(groups['cats'].sum()))
+print('~~~ Subcategory Sums ~~~\n{}\n'.format(groups['subcats'].sum()))
 
 pricey = exps[exps['amount'] < -50]
 food = filtercat(exps, 'Food')
@@ -76,10 +80,10 @@ entertainment = filtercat(exps, 'Entertainment')
 monthly = filtercat(exps, 'Monthly')
 deposits = filtercat(trans, 'Deposit')
 
-categories = pd.unique(trans['category'])
 
 # Sums = pd.Series(np.zeros(len(categories)), index=categories)
 # for cat in Sums.index:
 #     Sums[cat] = sumamount(trans[trans['category'] == cat])
 
 # counts = pd.value_counts(exps['category'])
+# categories = pd.unique(trans['category'])
