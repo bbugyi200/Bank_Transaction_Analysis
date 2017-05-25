@@ -3,7 +3,7 @@ import pandas as pd
 
 
 keywords = pd.read_csv('keywords.csv', index_col=None)
-filename = '0423-0523.csv'
+filename = 'data/0423-0523.csv'
 
 
 def getTrans(CSV):
@@ -68,10 +68,14 @@ groups['cats'] = trans.groupby('category')
 groups['subcats'] = trans.groupby(['category', 'subcategory'])
 groups['keys'] = trans.groupby(['category', 'subcategory', 'keyword'])
 
-print('\n\n')
-print('~~~ Total Expenses ~~~\n{:.2f}\n\n'.format(exps['amount'].sum()))
-print('~~~ Category Sums ~~~\n{}\n\n'.format(groups['cats'].sum()))
-print('~~~ Subcategory Sums ~~~\n{}\n'.format(groups['subcats'].sum()))
+
+verbose = False
+if verbose:
+    print('\n\n')
+    print('~~~ Total Expenses ~~~\n{:.2f}\n\n'.format(exps['amount'].sum()))
+    print('~~~ Category Sums ~~~\n{}\n\n'.format(groups['cats'].sum()))
+    print('~~~ Subcategory Sums ~~~\n{}\n'.format(groups['subcats'].sum()))
+
 
 pricey = exps[exps['amount'] < -50]
 food = filtercat(exps, 'Food')
