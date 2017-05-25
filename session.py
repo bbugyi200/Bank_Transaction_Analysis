@@ -9,9 +9,15 @@ filename = 'data/0423-0523.csv'
 def getTrans(CSV):
     trans = pd.read_csv(CSV)
     trans.columns = ['date', 'amount', '*', '-', 'description']
-    trans.description = trans.description.replace(r'PURCHASE AUTHORIZED ON [0-9]{2}/[0-9]{2}', '', regex=True)
+
+    # Clean Data
     del trans['*']
     del trans['-']
+    trans['date'] = pd.to_datetime(trans.date)
+    trans.set_index('date', inplace=True)
+    trans.description = trans.description.replace(r'PURCHASE AUTHORIZED ON [0-9]{2}/[0-9]{2}', '', regex=True)
+
+    # Append new columns
     trans['category'] = None
     trans['subcategory'] = None
     trans['keyword'] = None
@@ -51,10 +57,6 @@ def analyzeTrans(trans):
             trans['subcategory'][i] = sub
 
 
-def sumamount(df):
-    return df['amount'].sum()
-
-
 def filtercat(df, cat, column='category'):
     return df[df[column] == cat]
 
@@ -83,11 +85,3 @@ other = filtercat(exps, 'Other')
 entertainment = filtercat(exps, 'Entertainment')
 monthly = filtercat(exps, 'Monthly')
 deposits = filtercat(trans, 'Deposit')
-
-
-# Sums = pd.Series(np.zeros(len(categories)), index=categories)
-# for cat in Sums.index:
-#     Sums[cat] = sumamount(trans[trans['category'] == cat])
-
-# counts = pd.value_counts(exps['category'])
-# categories = pd.unique(trans['category'])
