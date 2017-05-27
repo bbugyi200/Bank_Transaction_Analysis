@@ -1,12 +1,24 @@
-import numpy as np
 import pandas as pd
+import string
+import os
 
 
-keywords = pd.read_csv('keywords.csv', index_col=None)
+try:
+    keywords = pd.read_csv('keywords.csv', index_col=None)
+except FileNotFoundError:
+    keywords = pd.DataFrame({'category': [], 'subcategory': [], 'keyword': []})
+
 filename = 'data/0423-0523.csv'
+
+categories = pd.unique(keywords['category'].str.title())
 
 
 def getTrans(CSV):
+    """ Loads, cleans, and returns trasaction DataFrame.
+
+    This function is heavily customized to the format of the CSV file
+    of transactions downloadable from the Wells Fargo website.
+    """
     trans = pd.read_csv(CSV)
     trans.columns = ['date', 'amount', '*', '-', 'description']
 
@@ -20,41 +32,72 @@ def getTrans(CSV):
     # Append new columns
     trans['category'] = None
     trans['subcategory'] = None
-    trans['keyword'] = None
+    trans['class'] = None
     return trans
 
 
-def getcats():
-    cat = input('Category: ')
-    sub = input('Subcategory: ')
-    key = input('Keyword: ')
-    print('\n')
-    return (key, cat, sub)
+def getSubs(cat: "category"):
+    cat = cat.lower()
+    mask = keywords['category'] == cat
+    return pd.unique(keywords[mask]['subcategory'].str.title())
+
+
+def menu(field: "name of field to prompt user for",
+         i: "current index of transaction DB",
+         seq: "sequence to map to letters" = None):
+
+    os.system('clear')
+    print('Date: {}'.format(trans.index[i]),
+          'Description: {}'.format(trans.ix[i]['description']),
+          'Amount: {}'.format(trans.ix[i]['amount']),
+          sep='\n',
+          end='\n\n')
+    print("Select a {}".format(field.title()), end='')
+
+    if seq is None:
+        print(' ', end='')
+        mapping = []
+    else:
+        mapping = dict(zip(string.ascii_uppercase, seq))
+        print('\n\n')
+        for key, item in mapping.items():
+            print(key, ': ', item, sep='')
+        print()
+    user_input = input('>>> ')
+    os.system('clear')
+    if user_input in mapping:
+        return mapping[user_input].lower()
+    elif len(user_input) > 1:
+        return user_input.lower()
 
 
 def analyzeTrans(trans):
     global keywords
     for i in range(len(trans)):
         match = ''
+        index = trans.index[i]
         for j, key in enumerate(keywords['keyword']):
-            if key.lower() in trans['description'][i].lower():
+            if key in trans.ix[i, 'description'].lower():
                 assert match == '', "MULTIPLE KEYWORD MATCH: ('{0}', '{1}')".format(match, key)
-                trans['category'][i] = keywords.ix[j]['category']
-                trans['subcategory'][i] = keywords.ix[j]['subcategory']
-                trans['keyword'][i] = keywords.ix[j]['keyword']
+                trans.loc[index, 'category'] = keywords.ix[j]['category'].title()
+                trans.loc[index, 'subcategory'] = keywords.ix[j]['subcategory'].title()
+                trans.loc[index, 'class'] = keywords.ix[j]['keyword'].title()
                 match = key
         if match:
             continue
         else:
             print(trans.ix[i], '\n')
-            key, cat, sub = getcats()
+            cat = menu('category', i, categories)
+            sub = menu('subcategory', i, getSubs(cat))
+            key = menu('keyword', i)
             NewKey = pd.Series({'category': cat, 'subcategory': sub, 'keyword': key})
             keywords = keywords.append(NewKey, ignore_index=True)
             keywords.sort_values(['category', 'subcategory', 'keyword'], inplace=True)
             keywords.to_csv('keywords.csv', index=False)
 
-            trans['category'][i] = cat
-            trans['subcategory'][i] = sub
+            trans.loc[index, 'category'] = cat.title()
+            trans.loc[index, 'subcategory'] = sub.title()
+            trans.loc[index, 'class'] = key.title()
 
 
 def filtercat(df, cat, column='category'):
@@ -68,7 +111,7 @@ exps = trans[trans['amount'] < 0]
 groups = dict()
 groups['cats'] = trans.groupby('category')
 groups['subcats'] = trans.groupby(['category', 'subcategory'])
-groups['keys'] = trans.groupby(['category', 'subcategory', 'keyword'])
+groups['keys'] = trans.groupby(['category', 'subcategory', 'class'])
 
 
 verbose = False
