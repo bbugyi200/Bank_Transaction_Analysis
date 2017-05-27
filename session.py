@@ -26,7 +26,6 @@ def getTrans(CSV):
     del trans['*']
     del trans['-']
     trans['date'] = pd.to_datetime(trans.date)
-    trans.set_index('date', inplace=True)
     trans.description = trans.description.replace(r'PURCHASE AUTHORIZED ON [0-9]{2}/[0-9]{2}', '', regex=True)
 
     # Append new columns
@@ -60,7 +59,7 @@ def menu(field: "name of field to prompt user for",
     else:
         mapping = dict(zip(string.ascii_uppercase, seq))
         print('\n\n')
-        for key, item in mapping.items():
+        for key, item in sorted(mapping.items()):
             print(key, ': ', item, sep='')
         print()
     user_input = input('>>> ')
@@ -79,9 +78,9 @@ def analyzeTrans(trans):
         for j, key in enumerate(keywords['keyword']):
             if key in trans.ix[i, 'description'].lower():
                 assert match == '', "MULTIPLE KEYWORD MATCH: ('{0}', '{1}')".format(match, key)
-                trans.loc[index, 'category'] = keywords.ix[j]['category'].title()
-                trans.loc[index, 'subcategory'] = keywords.ix[j]['subcategory'].title()
-                trans.loc[index, 'class'] = keywords.ix[j]['keyword'].title()
+                trans.loc[i, 'category'] = keywords.ix[j]['category'].title()
+                trans.loc[i, 'subcategory'] = keywords.ix[j]['subcategory'].title()
+                trans.loc[i, 'class'] = keywords.ix[j]['keyword'].title()
                 match = key
         if match:
             continue
@@ -106,12 +105,14 @@ def filtercat(df, cat, column='category'):
 
 trans = getTrans(filename)
 analyzeTrans(trans)
+trans.set_index('date', inplace=True)
+
 exps = trans[trans['amount'] < 0]
 
 groups = dict()
-groups['cats'] = trans.groupby('category')
-groups['subcats'] = trans.groupby(['category', 'subcategory'])
-groups['keys'] = trans.groupby(['category', 'subcategory', 'class'])
+groups['cat'] = trans.groupby('category')
+groups['sub'] = trans.groupby(['category', 'subcategory'])
+groups['key'] = trans.groupby(['category', 'subcategory', 'class'])
 
 
 verbose = False
